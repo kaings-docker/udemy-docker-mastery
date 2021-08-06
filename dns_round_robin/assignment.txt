@@ -1,0 +1,24 @@
+// create a custom bridge network 'elastic'
+docker network create elastic
+docker network ls
+
+// create 2 container of elasticsearch:2 on custom network 'elastic' and set network-alias as 'search'
+// so that everytime network-alias 'search' is hit, it will distribute the traffic among the custom network 
+// (distributed among the containers). In this case, naming the containers is optional
+docker container run -d --network elastic --network-alias search elasticsearch:2
+docker container run -d --network elastic --network-alias search elasticsearch:2
+docker container ls
+
+// once 2 elasticsearch:2 containers are created, try hit the network alias 'search'
+// ** these 2 containers MUST be in the SAME NETWORK 'elastic' or else it won't be able to interact
+// 1) using alpine nslookup [DNS Name]
+// ** alpine container will auto-shutdown once the command is executed
+docker container run --rm --network elastic alpine nslookup search
+
+// 2) using centos curl [DNS Name]
+// ** centos container will auto-shutdown once the command is executed
+// ** elasticsearch containers run/expose at port 9200
+// ** each time the following command is run, 
+//    it will return different elaseticsearch containers within the network randomly
+docker container run --rm --network elastic centos curl -s search:9200
+docker container run --rm --network elastic centos curl -s search:9200
